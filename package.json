@@ -1,0 +1,23 @@
+{
+  "name": "iati-datastore-download-tool",
+  "version": "0.0.0",
+  "description": "A command line application to download datastore data.",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint src && prettier src --write",
+    "lintcheck": "eslint src && prettier src --check"
+  },
+  "dependencies": {
+    "commander": "^9.0.0",
+    "fs-extra": "^10.0.0",
+    "date-fns": "^4.1.0",
+    "node-fetch": "^3.2.10"
+  },
+  "devDependencies": {
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-config-flat-gitignore": "^2.1.0",
+    "prettier": "3.5.3"
+  },
+  "type": "module"
+}
