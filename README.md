@@ -60,7 +60,7 @@ One of:
 
 - `solr` - default
 - `xml` - only available with the `activity` core.
-- `csv`
+- `csv` - Currently limited to 1000 rows - see https://github.com/IATI/iati-datastore-download-tool/issues/4
 
 ### Output Dir (required)
 
