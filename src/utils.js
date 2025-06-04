@@ -2,13 +2,21 @@ import fs from "fs";
 import { format } from "date-fns";
 import { Command } from "commander";
 
-function loadJsonFile(filename) {
+function loadFiltersFileData(filename) {
   if (!fs.existsSync(filename)) {
     throw new Error(`File not found: ${filename}`);
   }
 
-  const data = fs.readFileSync(filename, "utf8");
-  return JSON.parse(data);
+  const jsonFiltersData = JSON.parse(fs.readFileSync(filename, "utf8"));
+
+  // This copied from importFilters function in https://github.com/IATI/datastore-search/blob/develop/src/global.js
+  for (let i = 0; i < jsonFiltersData.data.length; i++) {
+    if (jsonFiltersData.data[i].type === "date") {
+      jsonFiltersData.data[i].value = new Date(jsonFiltersData.data[i].value);
+    }
+  }
+
+  return jsonFiltersData;
 }
 
 function loadOptions(argv) {
@@ -36,6 +44,7 @@ function loadOptions(argv) {
     Core: options.core,
     Format: options.format,
     OutputDirectory: options.outputdir,
+    RowsPerPage: 1000,
   };
 
   if (!out["APIKey"] || typeof out["APIKey"] !== "string") {
@@ -194,4 +203,4 @@ function sleep(ms) {
   });
 }
 
-export { loadJsonFile, compileQuery, sleep, loadOptions };
+export { loadFiltersFileData, compileQuery, sleep, loadOptions };
