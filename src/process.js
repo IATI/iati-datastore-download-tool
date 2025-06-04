@@ -96,28 +96,86 @@ function processOtherResponseWriter(options, queryUrl, headers) {
     // TODO we aren't checking numFoundExact here - but then neither is https://github.com/IATI/datastore-services/blob/develop/Download/index.js
     console.log("Docs found: " + numDocs);
 
-    // Now lets get the real data
-    queryUrl.searchParams.set("rows", numDocs);
-    if (options["Format"] == "csv") {
-      queryUrl.searchParams.set("wt", "csv");
-      queryUrl.searchParams.set("omitHeaders", "false");
-    }
+    // Now lets get the real data ................................
+    if (numDocs < options["RowsPerPage"]) {
+      // We can just get all the results in one, great.
+      queryUrl.searchParams.set("rows", numDocs);
+      if (options["Format"] == "csv") {
+        queryUrl.searchParams.set("wt", "csv");
+      }
 
-    console.log("Getting data");
-    const response = await fetch(queryUrl.toString(), { headers: headers });
+      console.log("Getting data");
+      const response = await fetch(queryUrl.toString(), { headers: headers });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    const body = await response.text();
+      const body = await response.text();
 
-    if (options["Format"] == "csv") {
-      fs.writeFileSync(
-        options["OutputDirectory"] + "/" + "page1.csv",
-        body,
-        "utf-8",
-      );
+      if (options["Format"] == "csv") {
+        fs.writeFileSync(
+          options["OutputDirectory"] + "/" + "page1.csv",
+          body,
+          "utf-8",
+        );
+      }
+    } else {
+      // We have to loop through in a difficult manner .....
+
+      let currentCursorMark = "*";
+      let done = false;
+      let page = 1;
+
+      queryUrl.searchParams.set("rows", options["RowsPerPage"]);
+      queryUrl.searchParams.set("sort", "id asc");
+
+      do {
+        console.log("Getting page " + page);
+
+        queryUrl.searchParams.set("cursorMark", currentCursorMark);
+
+        // Make Meta call
+        queryUrl.searchParams.set("wt", "json");
+        const responseMeta = await fetch(queryUrl.toString(), {
+          headers: headers,
+        });
+        if (!responseMeta.ok) {
+          throw new Error(`HTTP error! status: ${responseMeta.status}`);
+        }
+        const metaFormattedResponse = await responseMeta.json();
+        const nextCursorMark = metaFormattedResponse.nextCursorMark;
+
+        // Make Data call
+        if (options["Format"] == "csv") {
+          queryUrl.searchParams.set("wt", "csv");
+        }
+        const responseData = await fetch(queryUrl.toString(), {
+          headers: headers,
+        });
+        if (!responseData.ok) {
+          throw new Error(`HTTP error! status: ${responseData.status}`);
+        }
+        const body = await responseData.text();
+
+        // Save data
+        if (options["Format"] == "csv") {
+          fs.writeFileSync(
+            options["OutputDirectory"] + "/" + "page" + page + ".csv",
+            body,
+            "utf-8",
+          );
+        }
+
+        // Next page?
+        if (nextCursorMark === currentCursorMark) {
+          done = true;
+        } else {
+          currentCursorMark = nextCursorMark;
+          page += 1;
+          await sleep(2000);
+        }
+      } while (!done);
     }
 
     console.log("Finished");
