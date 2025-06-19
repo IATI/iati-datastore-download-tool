@@ -204,4 +204,19 @@ function sleep(ms) {
   });
 }
 
-export { loadFiltersFileData, compileQuery, sleep, loadOptions };
+function convert_doc_arrays_to_strings(doc) {
+  for (let key of Object.keys(doc)) {
+    if (Array.isArray(doc[key])) {
+      doc[key] = doc[key].join(",");
+    }
+  }
+  return doc;
+}
+
+export {
+  loadFiltersFileData,
+  compileQuery,
+  sleep,
+  loadOptions,
+  convert_doc_arrays_to_strings,
+};

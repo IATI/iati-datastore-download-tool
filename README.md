@@ -60,7 +60,7 @@ One of:
 
 - `solr` - default. If you are looking for what you get when you download "JSON" from https://datastore.iatistandard.org/ use this option.
 - `xml` - only available with the `activity` core.
-- `csv` - Currently limited to 1000 rows - see https://github.com/IATI/iati-datastore-download-tool/issues/4
+- `csv`
 - `json-xml` - only available with the `activity` core.
 
 ### Output Dir (required)

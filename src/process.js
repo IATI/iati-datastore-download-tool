@@ -1,8 +1,20 @@
 import fs from "fs";
 import fetch from "node-fetch";
-import { sleep } from "./utils.js";
+import { sleep, convert_doc_arrays_to_strings } from "./utils.js";
+import { stringify } from "csv-stringify";
 
-function processJSONResponseWriter(options, queryUrl, headers) {
+function stringifyAsync(data, options, filename) {
+  // Used for CSV writing
+  return new Promise((resolve, reject) => {
+    stringify(data, options, (err, output) => {
+      if (err) return reject(err);
+      fs.writeFileSync(filename, output);
+      resolve(output);
+    });
+  });
+}
+
+function process(options, queryUrl, headers) {
   // This is used for cases with JSON Response Writers.
   // We just paginate over the results and do something as we save them.
 
@@ -72,6 +84,18 @@ function processJSONResponseWriter(options, queryUrl, headers) {
           }
           fs.writeSync(fileHandle, "</iati-activities>\n");
           fs.closeSync(fileHandle);
+        } else if (options["Format"] == "csv") {
+          let docs = formattedResponse.response.docs;
+          let columns = Object.keys(docs[0]);
+          let docs_csv = docs.map(convert_doc_arrays_to_strings);
+          await stringifyAsync(
+            docs_csv,
+            {
+              header: true,
+              columns: columns,
+            },
+            options["OutputDirectory"] + "/" + "page" + page + ".csv",
+          );
         }
       }
 
@@ -89,51 +113,4 @@ function processJSONResponseWriter(options, queryUrl, headers) {
   })();
 }
 
-function processOtherResponseWriter(options, queryUrl, headers) {
-  // This is used for cases where it's not a JSON Response Writers.
-
-  (async () => {
-    console.log("Getting meta data");
-    queryUrl.searchParams.set("rows", 0);
-    const responseMeta = await fetch(queryUrl.toString(), {
-      headers: headers,
-    });
-
-    if (!responseMeta.ok) {
-      throw new Error(`HTTP error! status: ${responseMeta.status}`);
-    }
-
-    const formattedResponse = await responseMeta.json();
-    const numDocs = formattedResponse.response.numFound;
-    // TODO we aren't checking numFoundExact here - but then neither is https://github.com/IATI/datastore-services/blob/develop/Download/index.js
-    console.log("Docs found: " + numDocs);
-
-    // Now lets get the real data
-    queryUrl.searchParams.set("rows", numDocs);
-    if (options["Format"] == "csv") {
-      queryUrl.searchParams.set("wt", "csv");
-      queryUrl.searchParams.set("omitHeaders", "false");
-    }
-
-    console.log("Getting data");
-    const response = await fetch(queryUrl.toString(), { headers: headers });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const body = await response.text();
-
-    if (options["Format"] == "csv") {
-      fs.writeFileSync(
-        options["OutputDirectory"] + "/" + "page1.csv",
-        body,
-        "utf-8",
-      );
-    }
-
-    console.log("Finished");
-  })();
-}
-
-export { processOtherResponseWriter, processJSONResponseWriter };
+export { process };
