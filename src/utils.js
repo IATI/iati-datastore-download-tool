@@ -57,7 +57,7 @@ function loadOptions(argv) {
   }
 
   const validFormatsForAllCores = {
-    activity: ["solr", "xml", "csv"],
+    activity: ["solr", "xml", "csv", "json-xml"],
     transaction: ["solr", "csv"],
     budget: ["solr", "csv"],
   };

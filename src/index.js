@@ -29,7 +29,11 @@ try {
   );
   const headers = { "Ocp-Apim-Subscription-Key": options["APIKey"] };
 
-  if (options["Format"] == "solr" || options["Format"] == "xml") {
+  if (
+    options["Format"] == "solr" ||
+    options["Format"] == "xml" ||
+    options["Format"] == "json-xml"
+  ) {
     processJSONResponseWriter(options, queryUrl, headers);
   } else {
     processOtherResponseWriter(options, queryUrl, headers);

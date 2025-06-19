@@ -16,6 +16,8 @@ function processJSONResponseWriter(options, queryUrl, headers) {
 
     if (options["Format"] == "xml") {
       queryUrl.searchParams.set("fl", "iati_xml");
+    } else if (options["Format"] == "json-xml") {
+      queryUrl.searchParams.set("fl", "iati_json");
     }
 
     do {
@@ -39,6 +41,16 @@ function processJSONResponseWriter(options, queryUrl, headers) {
           fs.writeFileSync(
             options["OutputDirectory"] + "/" + "page" + page + ".json",
             JSON.stringify(formattedResponse.response.docs, null, 2),
+            "utf-8",
+          );
+        } else if (options["Format"] == "json-xml") {
+          let out = [];
+          for (let x in formattedResponse.response.docs) {
+            out.push(JSON.parse(formattedResponse.response.docs[x].iati_json));
+          }
+          fs.writeFileSync(
+            options["OutputDirectory"] + "/" + "page" + page + ".json",
+            JSON.stringify(out, null, 2),
             "utf-8",
           );
         } else if (options["Format"] == "xml") {
