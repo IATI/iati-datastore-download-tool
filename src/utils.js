@@ -45,6 +45,7 @@ function loadOptions(argv) {
     Format: options.format,
     OutputDirectory: options.outputdir,
     RowsPerPage: 1000,
+    APIURL: "https://api.iatistandard.org/datastore/",
   };
 
   if (!out["APIKey"] || typeof out["APIKey"] !== "string") {

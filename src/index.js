@@ -22,10 +22,7 @@ try {
   }
 
   const queryUrl = new URL(
-    "https://api.iatistandard.org/datastore/" +
-      options["Core"] +
-      "/select?q=" +
-      query,
+    options["APIURL"] + options["Core"] + "/select?q=" + query,
   );
   const headers = { "Ocp-Apim-Subscription-Key": options["APIKey"] };
 
